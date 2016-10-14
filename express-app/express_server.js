@@ -42,10 +42,6 @@ function generateRandomString(length, chars) {
   return shortName;
  };
 
-// console.log(generateRandomString(randomLength, acceptableChars));
-
-
-
 // method-override is needed to be able to do an app.put call
 // in the form action, append '?_method=PUT' to the end of the URL.
 // This code below will look for that ?_method=PUT attribute and execute app.put instead of app.post
@@ -64,6 +60,7 @@ app.use(methodOverride('_method'));
 
 // CHANGE THIS - make a welcome page - ask what you want to do. See existing URLs or create a new shortURL
 app.get("/", (req, res) => {
+  console.log("IN GET /");
   let user_id = req.cookies.user_id;
   let email = req.cookies.email;
 
@@ -76,12 +73,11 @@ app.get("/", (req, res) => {
 });
 
 app.get("/urls", (req, res) => {
+  console.log("IN GET /urls");
   let user_id = req.cookies.user_id;
   let email = req.cookies.email;
-  // console.log("urlDatabase " + JSON.stringify(urlDatabase));
-  // console.log("user_id " + user_id);
-  // console.log("urlDatabase[user_id] " + urlDatabase[user_id]);
   let templateVars = { urls: urlDatabase[user_id], user_id: user_id, email: email };
+  
   res.render("urls_index", templateVars);
 });
 
@@ -89,22 +85,22 @@ app.get("/urls", (req, res) => {
 // to /urls/:id/ will think that the 'new' part is the name of an 'id'
 
 app.get("/urls/new", (req,res) => {
+  console.log("IN GET /urls/new");
   let user_id = req.cookies.user_id;
   let email = req.cookies.email;
   let templateVars = { user_id: user_id, email: email };
+  
   res.render("urls_new", templateVars);
 });
 
 // ADD
 app.post("/urls", (req, res) => {
+  console.log("IN POST /urls");
   let user_id = req.cookies.user_id;
   var shortURL = generateRandomString(randomLength, acceptableChars);
   var longURL = req.body.longURL;
   urlDatabase[user_id][shortURL] = longURL;
-  console.log("shortURL: " + shortURL);
-  console.log("longURL: " + longURL);
-  console.log("in POST - urlDatabase: " + JSON.stringify(urlDatabase));
-  
+ 
   res.redirect("/urls");
 
   //res.redirect(`/urls/${shortURL}`); // every post must have a redirect afterwards
@@ -112,13 +108,14 @@ app.post("/urls", (req, res) => {
 
 // DELETE
 app.post("/urls/:id/delete", (req, res) => {
+  console.log("IN POST /urls/:id/delete");
   let shortURL = req.params.id;
   delete urlDatabase[user_id][shortURL];
   res.redirect("/urls/");
 });
 
-
 app.get("/urls/:id", (req, res) => {
+  console.log("IN GET /urls/:id");
   let user_id = req.cookies.user_id;
   let email = req.cookies.email;
   let shortURL = req.params.id;
@@ -128,7 +125,8 @@ app.get("/urls/:id", (req, res) => {
     res.send("Page not found - 404", 404);
   } else {
     res.render("urls_show", templateVars);
- };  
+ }; 
+
 });
 
 // EDIT
@@ -136,6 +134,7 @@ app.get("/urls/:id", (req, res) => {
 // To use the app.put call, be sure to append ?_method=PUT to the end of the action URL
 // in the form field in the appropriate view
 app.put("/urls/:id", (req, res) => {
+  console.log("IN PUT /urls/:id");
   // use 'bodyparser' package to parse the BODY of the POST call
   // to get the data sent in the post request
   
@@ -150,13 +149,10 @@ app.put("/urls/:id", (req, res) => {
 
 // redirect to long URL
 app.get("/u/:shortURL", (req, res) => {
+  console.log("IN GET /u/:shortURL");
   let shortURL = req.params.shortURL;
-  // console.log("shortURL " + shortURL);
 
-  // Find the shortURL in the database, then redirect to the longURL
   for (item in urlDatabase) {
-    // console.log("item: " + item);
-    // console.log("urlDatabase[item]) " + JSON.stringify(urlDatabase[item][shortURL]));
     if (urlDatabase[item][shortURL]) { // if short url exists, redirect to longURL
       let longURL = urlDatabase[item][shortURL];
       res.redirect(longURL);
@@ -168,26 +164,24 @@ app.get("/u/:shortURL", (req, res) => {
 });
 
 app.get("/login", (req, res) => {
+  console.log("IN GET /login");
+
   templateVars = { message: "" };
 
   res.render("urls_login", templateVars);
 });
 
 app.post("/login", (req, res) => {
-  console.log("At POST /login");
+  console.log("IN POST /login");
+
   let email = req.body.email;
   let password = req.body.password;
 
-  console.log("@LOGIN email: " + email);
-  console.log("@LOGIN user_data: " + JSON.stringify(user_data));
-
   for (var item in user_data) { 
-    console.log("@LOGIN user_data[item].email " + user_data[item].email);
 
     if (user_data[item].email === email) {
       console.log("Email exists in database");
       
-      // if (data[item].password === password) {
       if (bcrypt.compareSync(password, user_data[item].password)) {
         res.cookie("user_id", user_data[item].id); // sets cookie to user_id;
         res.cookie("email", email); // sets cookie to user_id;
@@ -195,7 +189,6 @@ app.post("/login", (req, res) => {
         res.redirect("/");
 
       } else {
-        console.log("AT THE 403 LOGIN REDIRECT - password doesn't match");
 
         templateVars = { message: "The password is incorrect" };
         res.status(403).render("urls_login", templateVars);
@@ -203,7 +196,6 @@ app.post("/login", (req, res) => {
       }
     }
   }
-        console.log("AT THE 403 LOGIN REDIRECT - email doesn't match");
 
       templateVars = { message: "That user account does not exist" };
       res.status(403).render("urls_login", templateVars);
@@ -211,18 +203,24 @@ app.post("/login", (req, res) => {
 }) 
 
 app.post("/logout", (req, res) => {
+  console.log("IN POST /logout");
+
   res.cookie("user_id", "");
   res.cookie("email", "");
-  console.log("user_data: " + JSON.stringify(user_data));
+  
+  // console.log("user_data: " + JSON.stringify(user_data));
   res.redirect("/");
 })
 
 app.get("/register", (req, res) => {
+  console.log("IN GET /register");
+
   let templateVars = { message: undefined };
   res.render("urls_register", templateVars);
 })
 
 app.post("/register", (req, res) => {
+  console.log("IN POST /register");
   const email = req.body.email;
   const password = req.body.password;
 
@@ -237,8 +235,6 @@ app.post("/register", (req, res) => {
 
   for (var item in user_data) { 
     if (user_data[item].email === email) {
-      // console.log(JSON.stringify(user_data));
-      console.log("AT THE 400 REDIRECT - EMAIL ALREADY USED");
 
       templateVars["message"] = "An account already exists for that email address. Please use a different one.";
       res.status(400).render("urls_register", templateVars);
