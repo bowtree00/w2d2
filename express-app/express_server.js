@@ -4,6 +4,8 @@ var PORT = process.env.PORT || 8080; // default port 8080
 const bodyParser = require("body-parser");
 const methodOverride = require('method-override');
 const cookieParser = require('cookie-parser');
+const bcrypt = require('bcrypt');
+const salt = bcrypt.genSaltSync(10);
 // use res.cookie to set values on the cookie [in EXPRESS]
 // use cookie-parser to read values from the cookie [in cookie-parser]
  
@@ -17,7 +19,7 @@ app.set("view engine", "ejs");
 
 // DATABASE
 const data = {
-  "1exampleID": { id: "userRandomID", email: "testemail@gmail.com", password: "asdf" }
+  "1exampleID": { id: "userRandomID", email: "testemail@gmail.com", password: "$2a$04$kcqFKEbdS0LgBO/sTgCH3.H3zvERfkWOULYAmrV5rRe0hOIEwWQU6" }
 };
 
 var urlDatabase = {
@@ -151,12 +153,17 @@ app.post("/login", (req, res) => {
   let email = req.body.email;
   let password = req.body.password;
 
+  console.log("@LOGIN email: " + email);
+  console.log("@LOGIN data: " + JSON.stringify(data));
+
   for (var item in data) { 
+    console.log("@LOGIN data[item].email " + data[item].email);
+
     if (data[item].email === email) {
-      // console.log(JSON.stringify(data));
       console.log("Email exists in database");
       
-      if (data[item].password === password) {
+      // if (data[item].password === password) {
+      if (bcrypt.compareSync(password, data[item].password)) {
         res.cookie("user_id", data[item].id); // sets cookie to user_id;
         res.cookie("email", email); // sets cookie to user_id;
         
@@ -170,17 +177,18 @@ app.post("/login", (req, res) => {
         return next();
       }
     }
-      console.log("AT THE 403 LOGIN REDIRECT - email doesn't match");
+  }
+        console.log("AT THE 403 LOGIN REDIRECT - email doesn't match");
 
       templateVars = { message: "That user account does not exist" };
       res.status(403).render("urls_login", templateVars);
       return next();
-  }
 }) 
 
 app.post("/logout", (req, res) => {
   res.cookie("user_id", "");
   res.cookie("email", "");
+  console.log("Data: " + JSON.stringify(data));
   res.redirect("/");
 })
 
@@ -190,14 +198,17 @@ app.get("/register", (req, res) => {
 })
 
 app.post("/register", (req, res) => {
-  let email = req.body.email;
-  let password = req.body.password;
+  const email = req.body.email;
+  const password = req.body.password;
+
+  const hashed_password = bcrypt.hashSync(password, salt);
+
   let templateVars = { message: undefined, email: email };
 
   const keys = Object.keys(data);
 
   console.log("email: " + email);
-  console.log("password: " + password);
+  console.log("hashed_password: " + hashed_password);
 
   for (var item in data) { 
     if (data[item].email === email) {
@@ -220,7 +231,7 @@ app.post("/register", (req, res) => {
   
   res.cookie("user_id", user_id); // create user_id cookie 
   res.cookie("email", email); // puts email in the cookie
-  data[user_id] = { id: user_id, email: email, password: password };
+  data[user_id] = { id: user_id, email: email, password: hashed_password };
   res.redirect("/");
 });
 
