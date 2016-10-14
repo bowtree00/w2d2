@@ -6,7 +6,7 @@ const methodOverride = require('method-override');
 const cookieParser = require('cookie-parser');
 // use res.cookie to set values on the cookie [in EXPRESS]
 // use cookie-parser to read values from the cookie [in cookie-parser]
-
+ 
 // MIDDLEWARE
 app.use(bodyParser.urlencoded({
   extended: false
@@ -15,6 +15,10 @@ app.use(cookieParser());
 app.use(bodyParser.urlencoded());
 app.set("view engine", "ejs");
 
+// DATABASE
+const data = {
+  "1exampleID": { id: "userRandomID", email: "testemail@gmail.com", password: "asdf" }
+};
 
 var urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
@@ -62,7 +66,6 @@ app.get("/", (req, res) => {
   let templateVars = { username: current_user };
   res.render("urls_home", templateVars);
 });
-
 
 app.get("/urls", (req, res) => {
   let current_user = req.cookies.current_user;
@@ -136,7 +139,7 @@ app.post("/login", (req, res) => {
   let username = req.body.username;
   let password = req.body.password;
 
-  res.cookie("current_user", username);
+  res.cookie("current_user", username); // sets 
   res.redirect("/");
 }) 
 
@@ -145,8 +148,43 @@ app.post("/logout", (req, res) => {
   res.redirect("/");
 })
 
-app.get("/signup", (req, res) => {
-  res.render("urls_signup");
+app.get("/register", (req, res) => {
+  let templateVars = { message: undefined };
+  res.render("urls_register", templateVars);
+})
+
+app.post("/register", (req, res) => {
+  let email = req.body.email;
+  let password = req.body.password;
+  let templateVars = { message: undefined };
+
+  const keys = Object.keys(data);
+
+  console.log("email: " + email);
+  console.log("password: " + password);
+
+  for (var item in data) { 
+    if (data[item].email === email) {
+      // console.log(JSON.stringify(data));
+      console.log("AT THE 400 REDIRECT - EMAIL ALREADY USED");
+
+      templateVars["message"] = "An account already exists for that email address. Please use a different one.";
+      res.status(400).render("urls_register", templateVars);
+      return next(); // need to do this since using middleware
+    }
+  }
+
+  if (email === "" || password === "") {
+    templateVars["message"] = "Email and password cannot be blank";
+    res.status(400).render("urls_register", templateVars);
+    return next();
+  }
+
+  let user_id = generateRandomString(10, acceptableChars); // Randomly generate a user id
+  
+  res.cookie("user_id", user_id); // create user_id cookie 
+  data[user_id] = { id: user_id, email: email, password: password };
+  res.redirect("/");
 });
 
 app.listen(PORT, () => {

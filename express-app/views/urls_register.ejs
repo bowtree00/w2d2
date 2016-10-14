@@ -1,0 +1,21 @@
+<!-- views/urls_register.ejs -->
+
+<!-- header+section>(p#intro+(ul>li*5)+footer>(.row>(.col-xs-4+.col-xs-8))) -->
+<% if(message) { %>
+  <h1><%= message %></h1>
+<% } %>
+
+<form method="POST" action="/register">
+  <p>
+    <label>Email</label>
+    <input type="email" name="email" />
+  </p>
+  <p>
+    <label>Password</label>
+    <input type="password" name="password" />
+  </p>
+  <p>
+    <input type="submit" name="Signup" value="Create Account"/>
+  </p>
+
+</form>
