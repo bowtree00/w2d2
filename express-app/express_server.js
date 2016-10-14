@@ -18,13 +18,13 @@ app.use(bodyParser.urlencoded());
 app.set("view engine", "ejs");
 
 // DATABASE
-const data = {
-  "1exampleID": { id: "userRandomID", email: "testemail@gmail.com", password: "$2a$04$kcqFKEbdS0LgBO/sTgCH3.H3zvERfkWOULYAmrV5rRe0hOIEwWQU6" }
+const user_data = {
+  "userRandomID": { id: "userRandomID", email: "testemail@gmail.com", password: "$2a$04$kcqFKEbdS0LgBO/sTgCH3.H3zvERfkWOULYAmrV5rRe0hOIEwWQU6" }
 };
 
-var urlDatabase = {
-  "b2xVn2": "http://www.lighthouselabs.ca",
-  "9sm5xK": "http://www.google.com"
+var urlDatabase = { 
+  "userRandomID": { "b2xVn2": "http://www.lighthouselabs.ca",
+  "9sm5xK": "http://www.google.com" }
 };
 
 
@@ -78,7 +78,10 @@ app.get("/", (req, res) => {
 app.get("/urls", (req, res) => {
   let user_id = req.cookies.user_id;
   let email = req.cookies.email;
-  let templateVars = { urls: urlDatabase, user_id: user_id, email: email };
+  // console.log("urlDatabase " + JSON.stringify(urlDatabase));
+  // console.log("user_id " + user_id);
+  // console.log("urlDatabase[user_id] " + urlDatabase[user_id]);
+  let templateVars = { urls: urlDatabase[user_id], user_id: user_id, email: email };
   res.render("urls_index", templateVars);
 });
 
@@ -94,17 +97,23 @@ app.get("/urls/new", (req,res) => {
 
 // ADD
 app.post("/urls", (req, res) => {
+  let user_id = req.cookies.user_id;
   var shortURL = generateRandomString(randomLength, acceptableChars);
   var longURL = req.body.longURL;
-  urlDatabase[shortURL] = longURL;
-  // console.log("in POST: " + urlDatabase[shortURL]);
-  res.redirect(`/urls/${shortURL}`); // every post must have a redirect afterwards
+  urlDatabase[user_id][shortURL] = longURL;
+  console.log("shortURL: " + shortURL);
+  console.log("longURL: " + longURL);
+  console.log("in POST - urlDatabase: " + JSON.stringify(urlDatabase));
+  
+  res.redirect("/urls");
+
+  //res.redirect(`/urls/${shortURL}`); // every post must have a redirect afterwards
 });
 
 // DELETE
 app.post("/urls/:id/delete", (req, res) => {
   let shortURL = req.params.id;
-  delete urlDatabase[shortURL];
+  delete urlDatabase[user_id][shortURL];
   res.redirect("/urls/");
 });
 
@@ -113,9 +122,9 @@ app.get("/urls/:id", (req, res) => {
   let user_id = req.cookies.user_id;
   let email = req.cookies.email;
   let shortURL = req.params.id;
-  let templateVars = { user_id: user_id, email: email, shortURL: shortURL, longURL: urlDatabase[shortURL] };
+  let templateVars = { user_id: user_id, email: email, shortURL: shortURL, longURL: urlDatabase[user_id][shortURL] };
 
-  if (urlDatabase[shortURL] == undefined) {
+  if (urlDatabase[user_id][shortURL] == undefined) {
     res.send("Page not found - 404", 404);
   } else {
     res.render("urls_show", templateVars);
@@ -129,17 +138,33 @@ app.get("/urls/:id", (req, res) => {
 app.put("/urls/:id", (req, res) => {
   // use 'bodyparser' package to parse the BODY of the POST call
   // to get the data sent in the post request
+  
+  let user_id = req.cookies.user_id;
   let newURL = req.body.newUrl;
   let shortURL = req.params.id;
-  urlDatabase[shortURL] = newURL;
+
+  urlDatabase[user_id][shortURL] = newURL;
+
   res.redirect("/urls/");
 });
 
 // redirect to long URL
 app.get("/u/:shortURL", (req, res) => {
   let shortURL = req.params.shortURL;
-  let longURL = urlDatabase[shortURL];
-  res.redirect(longURL);
+  // console.log("shortURL " + shortURL);
+
+  // Find the shortURL in the database, then redirect to the longURL
+  for (item in urlDatabase) {
+    // console.log("item: " + item);
+    // console.log("urlDatabase[item]) " + JSON.stringify(urlDatabase[item][shortURL]));
+    if (urlDatabase[item][shortURL]) { // if short url exists, redirect to longURL
+      let longURL = urlDatabase[item][shortURL];
+      res.redirect(longURL);
+    }
+  }
+  
+  // if nothing is found, send 404 response
+  res.send("Page not found - 404", 404);
 });
 
 app.get("/login", (req, res) => {
@@ -154,17 +179,17 @@ app.post("/login", (req, res) => {
   let password = req.body.password;
 
   console.log("@LOGIN email: " + email);
-  console.log("@LOGIN data: " + JSON.stringify(data));
+  console.log("@LOGIN user_data: " + JSON.stringify(user_data));
 
-  for (var item in data) { 
-    console.log("@LOGIN data[item].email " + data[item].email);
+  for (var item in user_data) { 
+    console.log("@LOGIN user_data[item].email " + user_data[item].email);
 
-    if (data[item].email === email) {
+    if (user_data[item].email === email) {
       console.log("Email exists in database");
       
       // if (data[item].password === password) {
-      if (bcrypt.compareSync(password, data[item].password)) {
-        res.cookie("user_id", data[item].id); // sets cookie to user_id;
+      if (bcrypt.compareSync(password, user_data[item].password)) {
+        res.cookie("user_id", user_data[item].id); // sets cookie to user_id;
         res.cookie("email", email); // sets cookie to user_id;
         
         res.redirect("/");
@@ -188,7 +213,7 @@ app.post("/login", (req, res) => {
 app.post("/logout", (req, res) => {
   res.cookie("user_id", "");
   res.cookie("email", "");
-  console.log("Data: " + JSON.stringify(data));
+  console.log("user_data: " + JSON.stringify(user_data));
   res.redirect("/");
 })
 
@@ -205,14 +230,14 @@ app.post("/register", (req, res) => {
 
   let templateVars = { message: undefined, email: email };
 
-  const keys = Object.keys(data);
+  const keys = Object.keys(user_data);
 
   console.log("email: " + email);
   console.log("hashed_password: " + hashed_password);
 
-  for (var item in data) { 
-    if (data[item].email === email) {
-      // console.log(JSON.stringify(data));
+  for (var item in user_data) { 
+    if (user_data[item].email === email) {
+      // console.log(JSON.stringify(user_data));
       console.log("AT THE 400 REDIRECT - EMAIL ALREADY USED");
 
       templateVars["message"] = "An account already exists for that email address. Please use a different one.";
@@ -231,7 +256,8 @@ app.post("/register", (req, res) => {
   
   res.cookie("user_id", user_id); // create user_id cookie 
   res.cookie("email", email); // puts email in the cookie
-  data[user_id] = { id: user_id, email: email, password: hashed_password };
+  user_data[user_id] = { id: user_id, email: email, password: hashed_password };
+  urlDatabase[user_id] = {};
   res.redirect("/");
 });
 
