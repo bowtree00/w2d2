@@ -1,12 +1,23 @@
 <!DOCTYPE html>
+
 <html lang="en">
 <head></head>
+
   <body style="font-size:20px; padding:50px;">
     <% include partials/_header %>
+
+  <% if(!user_id) { %>
+  <h1>You must be registered and logged in to create links</h1>
+  <p><a href = "/login">Log In</a><p>
+
+  <% } else { %>
+
     <form action="/urls" method="POST" style="margin:150px;">
       <label for="longURL">Enter a URL:</label>
       <input id="longURL" type="text" name="longURL" placeholder="http://" style="width: 300px">
       <input type="submit" value="Submit">
     </form>
+
+  <% } %>
   </body > 
 </html>
