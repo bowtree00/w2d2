@@ -3,7 +3,8 @@ var app = express();
 var PORT = process.env.PORT || 8080; // default port 8080
 const bodyParser = require("body-parser");
 const methodOverride = require('method-override');
-const cookieParser = require('cookie-parser');
+// const cookieParser = require('cookie-parser');
+const cookieSession = require('cookie-session');
 const bcrypt = require('bcrypt');
 const salt = bcrypt.genSaltSync(10);
 // use res.cookie to set values on the cookie [in EXPRESS]
@@ -13,7 +14,8 @@ const salt = bcrypt.genSaltSync(10);
 app.use(bodyParser.urlencoded({
   extended: false
 }));
-app.use(cookieParser());
+// app.use(cookieParser());
+app.use(cookieSession({ name: "session", keys: ["this is a key", "this is another key"]}));
 app.use(bodyParser.urlencoded());
 app.set("view engine", "ejs");
 
@@ -61,8 +63,8 @@ app.use(methodOverride('_method'));
 // CHANGE THIS - make a welcome page - ask what you want to do. See existing URLs or create a new shortURL
 app.get("/", (req, res) => {
   console.log("IN GET /");
-  let user_id = req.cookies.user_id;
-  let email = req.cookies.email;
+  let user_id = req.session.user_id;
+  let email = req.session.email;
 
   console.log("in /, user_id: " + user_id);
   console.log("in /, email: " + email);
@@ -74,8 +76,8 @@ app.get("/", (req, res) => {
 
 app.get("/urls", (req, res) => {
   console.log("IN GET /urls");
-  let user_id = req.cookies.user_id;
-  let email = req.cookies.email;
+  let user_id = req.session.user_id;
+  let email = req.session.email;
   let templateVars = { urls: urlDatabase[user_id], user_id: user_id, email: email };
   
   res.render("urls_index", templateVars);
@@ -86,8 +88,8 @@ app.get("/urls", (req, res) => {
 
 app.get("/urls/new", (req,res) => {
   console.log("IN GET /urls/new");
-  let user_id = req.cookies.user_id;
-  let email = req.cookies.email;
+  let user_id = req.session.user_id;
+  let email = req.session.email;
   let templateVars = { user_id: user_id, email: email };
   
   res.render("urls_new", templateVars);
@@ -96,7 +98,7 @@ app.get("/urls/new", (req,res) => {
 // ADD
 app.post("/urls", (req, res) => {
   console.log("IN POST /urls");
-  let user_id = req.cookies.user_id;
+  let user_id = req.session.user_id;
   var shortURL = generateRandomString(randomLength, acceptableChars);
   var longURL = req.body.longURL;
   urlDatabase[user_id][shortURL] = longURL;
@@ -107,7 +109,7 @@ app.post("/urls", (req, res) => {
 // DELETE
 app.post("/urls/:id/delete", (req, res) => {
   console.log("IN POST /urls/:id/delete");
-  let user_id = req.cookies.user_id;
+  let user_id = req.session.user_id;
   let shortURL = req.params.id;
 
   delete urlDatabase[user_id][shortURL];
@@ -116,8 +118,8 @@ app.post("/urls/:id/delete", (req, res) => {
 
 app.get("/urls/:id", (req, res) => {
   console.log("IN GET /urls/:id");
-  let user_id = req.cookies.user_id;
-  let email = req.cookies.email;
+  let user_id = req.session.user_id;
+  let email = req.session.email;
   let shortURL = req.params.id;
   let templateVars = { user_id: user_id, email: email, shortURL: shortURL, longURL: urlDatabase[user_id][shortURL] };
 
@@ -138,7 +140,7 @@ app.put("/urls/:id", (req, res) => {
   // use 'bodyparser' package to parse the BODY of the POST call
   // to get the data sent in the post request
   
-  let user_id = req.cookies.user_id;
+  let user_id = req.session.user_id;
   let newURL = req.body.newUrl;
   let shortURL = req.params.id;
 
@@ -155,7 +157,13 @@ app.get("/u/:shortURL", (req, res) => {
   for (item in urlDatabase) {
     if (urlDatabase[item][shortURL]) { // if short url exists, redirect to longURL
       let longURL = urlDatabase[item][shortURL];
+
+      // add error checking here. If string does not use http:// at the
+      // begining, then add it. Otherwise it will think longURL is a relative
+      // path and it will not work
       res.redirect(longURL);
+
+      return
     }
   }
   
@@ -183,9 +191,13 @@ app.post("/login", (req, res) => {
       console.log("Email exists in database");
       
       if (bcrypt.compareSync(password, user_data[item].password)) {
-        res.cookie("user_id", user_data[item].id); // sets cookie to user_id;
-        res.cookie("email", email); // sets cookie to user_id;
+        // res.cookie("user_id", user_data[item].id); // sets cookie to user_id;
+        // res.cookie("email", email); // sets cookie to user_id;
         
+        // SET cookies
+        req.session.user_id = user_data[item].id;
+        req.session.email = email;
+
         res.redirect("/urls");
         return;
 
@@ -206,8 +218,11 @@ app.post("/login", (req, res) => {
 app.post("/logout", (req, res) => {
   console.log("IN POST /logout");
 
-  res.cookie("user_id", "");
-  res.cookie("email", "");
+  // res.cookie("user_id", "");
+  // res.cookie("email", "");
+
+    req.session.user_id = "";
+    req.session.email = "";
 
   // console.log("user_data: " + JSON.stringify(user_data));
   res.redirect("/");
@@ -251,8 +266,12 @@ app.post("/register", (req, res) => {
 
   let user_id = generateRandomString(10, acceptableChars); // Randomly generate a user id
   
-  res.cookie("user_id", user_id); // create user_id cookie 
-  res.cookie("email", email); // puts email in the cookie
+  // res.cookie("user_id", user_id); // create user_id cookie 
+  // res.cookie("email", email); // puts email in the cookie
+  
+  req.session.user_id = user_id;
+  req.session.email = email;
+
   user_data[user_id] = { id: user_id, email: email, password: hashed_password };
   urlDatabase[user_id] = {};
   res.redirect("/");
