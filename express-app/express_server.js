@@ -102,14 +102,14 @@ app.post("/urls", (req, res) => {
   urlDatabase[user_id][shortURL] = longURL;
  
   res.redirect("/urls");
-
-  //res.redirect(`/urls/${shortURL}`); // every post must have a redirect afterwards
 });
 
 // DELETE
 app.post("/urls/:id/delete", (req, res) => {
   console.log("IN POST /urls/:id/delete");
+  let user_id = req.cookies.user_id;
   let shortURL = req.params.id;
+
   delete urlDatabase[user_id][shortURL];
   res.redirect("/urls/");
 });
@@ -186,20 +186,21 @@ app.post("/login", (req, res) => {
         res.cookie("user_id", user_data[item].id); // sets cookie to user_id;
         res.cookie("email", email); // sets cookie to user_id;
         
-        res.redirect("/");
+        res.redirect("/urls");
+        return;
 
       } else {
 
         templateVars = { message: "The password is incorrect" };
         res.status(403).render("urls_login", templateVars);
-        return next();
+        return;
       }
     }
   }
 
       templateVars = { message: "That user account does not exist" };
       res.status(403).render("urls_login", templateVars);
-      return next();
+      return;
 }) 
 
 app.post("/logout", (req, res) => {
@@ -207,7 +208,7 @@ app.post("/logout", (req, res) => {
 
   res.cookie("user_id", "");
   res.cookie("email", "");
-  
+
   // console.log("user_data: " + JSON.stringify(user_data));
   res.redirect("/");
 })
@@ -238,14 +239,14 @@ app.post("/register", (req, res) => {
 
       templateVars["message"] = "An account already exists for that email address. Please use a different one.";
       res.status(400).render("urls_register", templateVars);
-      return next(); // need to do this since using middleware
+      return; // need to do this since using middleware
     }
   }
 
   if (email === "" || password === "") {
     templateVars["message"] = "Email and password cannot be blank";
     res.status(400).render("urls_register", templateVars);
-    return next();
+    return;
   }
 
   let user_id = generateRandomString(10, acceptableChars); // Randomly generate a user id
