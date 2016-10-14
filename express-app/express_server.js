@@ -62,14 +62,21 @@ app.use(methodOverride('_method'));
 
 // CHANGE THIS - make a welcome page - ask what you want to do. See existing URLs or create a new shortURL
 app.get("/", (req, res) => {
-  let current_user = req.cookies.current_user;
-  let templateVars = { username: current_user };
+  let user_id = req.cookies.user_id;
+  let email = req.cookies.email;
+
+  console.log("in /, user_id: " + user_id);
+  console.log("in /, email: " + email);
+
+  var templateVars = { user_id: user_id, email: email };
+
   res.render("urls_home", templateVars);
 });
 
 app.get("/urls", (req, res) => {
-  let current_user = req.cookies.current_user;
-  let templateVars = { urls: urlDatabase, username: current_user };
+  let user_id = req.cookies.user_id;
+  let email = req.cookies.email;
+  let templateVars = { urls: urlDatabase, user_id: user_id, email: email };
   res.render("urls_index", templateVars);
 });
 
@@ -77,8 +84,9 @@ app.get("/urls", (req, res) => {
 // to /urls/:id/ will think that the 'new' part is the name of an 'id'
 
 app.get("/urls/new", (req,res) => {
-  let current_user = req.cookies.current_user;
-  let templateVars = { username: current_user };
+  let user_id = req.cookies.user_id;
+  let email = req.cookies.email;
+  let templateVars = { user_id: user_id, email: email };
   res.render("urls_new", templateVars);
 });
 
@@ -100,9 +108,10 @@ app.post("/urls/:id/delete", (req, res) => {
 
 
 app.get("/urls/:id", (req, res) => {
-  let current_user = req.cookies.current_user;
+  let user_id = req.cookies.user_id;
+  let email = req.cookies.email;
   let shortURL = req.params.id;
-  let templateVars = { username: current_user, shortURL: shortURL, longURL: urlDatabase[shortURL] };
+  let templateVars = { user_id: user_id, email: email, shortURL: shortURL, longURL: urlDatabase[shortURL] };
 
   if (urlDatabase[shortURL] == undefined) {
     res.send("Page not found - 404", 404);
@@ -132,19 +141,46 @@ app.get("/u/:shortURL", (req, res) => {
 });
 
 app.get("/login", (req, res) => {
-  res.render("urls_login");
+  templateVars = { message: "" };
+
+  res.render("urls_login", templateVars);
 });
 
 app.post("/login", (req, res) => {
-  let username = req.body.username;
+  console.log("At POST /login");
+  let email = req.body.email;
   let password = req.body.password;
 
-  res.cookie("current_user", username); // sets 
-  res.redirect("/");
+  for (var item in data) { 
+    if (data[item].email === email) {
+      // console.log(JSON.stringify(data));
+      console.log("Email exists in database");
+      
+      if (data[item].password === password) {
+        res.cookie("user_id", data[item].id); // sets cookie to user_id;
+        res.cookie("email", email); // sets cookie to user_id;
+        
+        res.redirect("/");
+
+      } else {
+        console.log("AT THE 403 LOGIN REDIRECT - password doesn't match");
+
+        templateVars = { message: "The password is incorrect" };
+        res.status(403).render("urls_login", templateVars);
+        return next();
+      }
+    }
+      console.log("AT THE 403 LOGIN REDIRECT - email doesn't match");
+
+      templateVars = { message: "That user account does not exist" };
+      res.status(403).render("urls_login", templateVars);
+      return next();
+  }
 }) 
 
 app.post("/logout", (req, res) => {
-  res.cookie("current_user", "");
+  res.cookie("user_id", "");
+  res.cookie("email", "");
   res.redirect("/");
 })
 
@@ -156,7 +192,7 @@ app.get("/register", (req, res) => {
 app.post("/register", (req, res) => {
   let email = req.body.email;
   let password = req.body.password;
-  let templateVars = { message: undefined };
+  let templateVars = { message: undefined, email: email };
 
   const keys = Object.keys(data);
 
@@ -183,6 +219,7 @@ app.post("/register", (req, res) => {
   let user_id = generateRandomString(10, acceptableChars); // Randomly generate a user id
   
   res.cookie("user_id", user_id); // create user_id cookie 
+  res.cookie("email", email); // puts email in the cookie
   data[user_id] = { id: user_id, email: email, password: password };
   res.redirect("/");
 });

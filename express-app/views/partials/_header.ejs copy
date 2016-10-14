@@ -1,0 +1,23 @@
+<h2> This is my header </h2>
+
+<% if(!user_id) { %>
+
+<form method="POST" action="/login">
+  <p>
+    <label>Username</label>
+    <input type="text" name="username" />
+  </p>
+  <p>
+    <label>Password</label>
+    <input type="password" name="password" />
+  </p>
+  <p>
+    <input type="submit" name="signup" value="Log in" />
+  </p>
+</form>
+<% } else { %>
+<h3> Logged in as: <%= user_id %></h3>
+<form method="POST" action="/logout">
+<input type="submit" name="logout" value="Log Out" />
+</form>
+<% } %>

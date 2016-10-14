@@ -1,9 +1,13 @@
 <!-- views/urls_login.ejs -->
 
+<% if(message) { %>
+  <h1><%= message %></h1>
+<% } %>
+
 <form method="POST" action="/login">
   <p>
-    <label>Username</label>
-    <input type="text" name="username" />
+    <label>Email</label>
+    <input type="text" name="email" />
   </p>
   <p>
     <label>Password</label>
