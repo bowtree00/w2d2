@@ -101,8 +101,10 @@ app.post("/urls", (req, res) => {
   let user_id = req.session.user_id;
   var shortURL = generateRandomString(randomLength, acceptableChars);
   var longURL = req.body.longURL;
+  
+  // DO SOME ERROR CHECKING HERE - if 'string does not start with http://' then add it
   urlDatabase[user_id][shortURL] = longURL;
- 
+  
   res.redirect("/urls");
 });
 
