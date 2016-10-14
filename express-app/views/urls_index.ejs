@@ -1,0 +1,29 @@
+<!-- views/urls_index.ejs -->
+
+<!DOCTYPE html>
+<html lang="en">
+<body> 
+  <header> 
+    <% include partials/_header.ejs %>
+  </header>
+  <h1> Shortened Links: </h1>
+  <ul>
+  <% var keys = Object.keys(urls); %>
+  <% keys.forEach(function(key){ %>
+    <% currUrl = urls[key]; %> 
+    <li><b><%= key %></b> -->  <a href=<%= currUrl %>><%= currUrl %></a>  
+      <a href="/urls/<%= key %>/">Edit</a>
+    <% url = "/urls/" + key + "/delete" %>
+    <form method="POST" action=<%= url %> >
+      <button> Delete <%= key %> </button>
+    </form></li>
+  <% }); %>
+  </ul>
+  <p></p>
+  <h2>Create a new shortened link</h2>
+  <form method="GET" action="/urls/new">
+    <button> Go </button>
+  </form>
+</body>
+</html>
+

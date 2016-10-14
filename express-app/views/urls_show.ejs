@@ -1,0 +1,16 @@
+<!-- views/urls_show.ejs -->
+
+<!DOCTYPE html>
+<html lang="en">
+<body> 
+  <header> 
+    <% include partials/_header.ejs %>
+  </header>
+  <h1> ShortURL: <%= shortURL %> </h1>
+  <p></p>
+  <% url = "/urls/" + shortURL + "?_method=PUT"; %>
+  <form method="POST" action="<%= url %>">
+  <input name="newUrl" value="<%= longURL %>" /><button> Update </button><br>
+  <p><a href = "/urls/">GO HOME (hard coded)</a></p>
+</body>
+</html>
