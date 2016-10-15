@@ -47,18 +47,18 @@ function generateRandomString(length, chars) {
 // LISTENERS
 app.get("/", (req, res) => {
   console.log("IN GET /");
-  let user_id = req.session.user_id; // NOTE: this code gets the user_id and email from the cookie using 'cookie-session'
-  let email = req.session.email;
-  let templateVars = { user_id: user_id, email: email };
+  const user_id = req.session.user_id; // NOTE: this code gets the user_id and email from the cookie using 'cookie-session'
+  const email = req.session.email;
+  const templateVars = { user_id: user_id, email: email };
 
   res.render("urls_home", templateVars);
 });
 
 app.get("/urls", (req, res) => {
   console.log("IN GET /urls");
-  let user_id = req.session.user_id;
-  let email = req.session.email;
-  let templateVars = { urls: urlDatabase[user_id], user_id: user_id, email: email };
+  const user_id = req.session.user_id;
+  const email = req.session.email;
+  const templateVars = { urls: urlDatabase[user_id], user_id: user_id, email: email };
   
   res.render("urls_index", templateVars);
 });
@@ -68,9 +68,9 @@ app.get("/urls", (req, res) => {
 
 app.get("/urls/new", (req,res) => {
   console.log("IN GET /urls/new");
-  let user_id = req.session.user_id;
-  let email = req.session.email;
-  let templateVars = { user_id: user_id, email: email };
+  const user_id = req.session.user_id;
+  const email = req.session.email;
+  const templateVars = { user_id: user_id, email: email };
   
   res.render("urls_new", templateVars);
 });
@@ -78,9 +78,9 @@ app.get("/urls/new", (req,res) => {
 // -- ADD
 app.post("/urls", (req, res) => {
   console.log("IN POST /urls");
-  let user_id = req.session.user_id;
-  let shortURL = generateRandomString(randomLength, acceptableChars);
-  let longURL = req.body.longURL;
+  const user_id = req.session.user_id;
+  const shortURL = generateRandomString(randomLength, acceptableChars);
+  const longURL = req.body.longURL;
   
   // DO SOME ERROR CHECKING HERE - if 'string does not start with http://' then add it
   urlDatabase[user_id][shortURL] = longURL;
@@ -91,8 +91,8 @@ app.post("/urls", (req, res) => {
 // -- DELETE
 app.post("/urls/:id/delete", (req, res) => {
   console.log("IN POST /urls/:id/delete");
-  let user_id = req.session.user_id;
-  let shortURL = req.params.id;
+  const user_id = req.session.user_id;
+  const shortURL = req.params.id;
 
   delete urlDatabase[user_id][shortURL];
   res.redirect("/urls/");
@@ -100,10 +100,10 @@ app.post("/urls/:id/delete", (req, res) => {
 
 app.get("/urls/:shortURL", (req, res) => {
   console.log("IN GET /urls/:id");
-  let user_id = req.session.user_id;
-  let email = req.session.email;
-  let shortURL = req.params.shortURL; // grabs the shortURL from the :shortURL parameter in the URL pattern in the GET request
-  let templateVars = { user_id: user_id, email: email, shortURL: shortURL, longURL: urlDatabase[user_id][shortURL] };
+  const user_id = req.session.user_id;
+  const email = req.session.email;
+  const shortURL = req.params.shortURL; // grabs the shortURL from the :shortURL parameter in the URL pattern in the GET request
+  const templateVars = { user_id: user_id, email: email, shortURL: shortURL, longURL: urlDatabase[user_id][shortURL] };
 
   if (urlDatabase[user_id][shortURL] === undefined) {
     res.send("Page not found - 404", 404);
@@ -121,9 +121,9 @@ app.put("/urls/:shortURL", (req, res) => {
   // use 'bodyparser' package to parse the BODY of the POST call
   // to get the data sent in the post request. e.g., let newURL = req.body.newUrl;
   
-  let user_id = req.session.user_id;
-  let newURL = req.body.newUrl;       // grabs the newURL from the request body (using body-parser)
-  let shortURL = req.params.shortURL; // grabs the shortURL from the :shortURL parameter in the URL pattern in the GET request
+  const user_id = req.session.user_id;
+  const newURL = req.body.newUrl;       // grabs the newURL from the request body (using body-parser)
+  const shortURL = req.params.shortURL; // grabs the shortURL from the :shortURL parameter in the URL pattern in the GET request
 
   urlDatabase[user_id][shortURL] = newURL;
 
@@ -133,7 +133,7 @@ app.put("/urls/:shortURL", (req, res) => {
 // Redirect to long URL
 app.get("/u/:shortURL", (req, res) => {
   console.log("IN GET /u/:shortURL");
-  let shortURL = req.params.shortURL; // grabs the shortURL from the :ID parameter in the URL pattern in the GET request
+  const shortURL = req.params.shortURL; // grabs the shortURL from the :ID parameter in the URL pattern in the GET request
 
   for (let item in urlDatabase) {
     if (urlDatabase[item][shortURL]) { // if short url exists, redirect to longURL
@@ -162,8 +162,8 @@ app.get("/login", (req, res) => {
 app.post("/login", (req, res) => {
   console.log("IN POST /login");
 
-  let email = req.body.email;
-  let password = req.body.password;
+  const email = req.body.email;
+  const password = req.body.password;
 
   for (let item in user_data) { 
 
@@ -190,18 +190,18 @@ app.post("/login", (req, res) => {
     }
   }
 
-      templateVars = { message: "That user account does not exist" };
-      res.status(403).render("urls_login", templateVars);
-      
-      return;
+  templateVars = { message: "That user account does not exist" };
+  res.status(403).render("urls_login", templateVars);
+  
+  return;
 }); 
 
 app.post("/logout", (req, res) => {
   console.log("IN POST /logout");
 
-    // CLEAR cookies
-    req.session.user_id = "";
-    req.session.email = "";
+  // CLEAR cookies
+  req.session.user_id = "";
+  req.session.email = "";
 
   res.redirect("/");
 });
@@ -220,7 +220,7 @@ app.post("/register", (req, res) => {
 
   const hashed_password = bcrypt.hashSync(password, salt); // create hashed password
 
-  let templateVars = { message: undefined, email: email };
+  const templateVars = { message: undefined, email: email };
 
   const keys = Object.keys(user_data);
 
@@ -242,7 +242,7 @@ app.post("/register", (req, res) => {
     return;
   }
 
-  let user_id = generateRandomString(10, acceptableChars); // Randomly generate a user id
+  const user_id = generateRandomString(10, acceptableChars); // Randomly generate a user id
   
   // SET cookies for new registrant - signs them in after registration
   req.session.user_id = user_id;
