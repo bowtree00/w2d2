@@ -13,6 +13,10 @@ app.use(cookieSession({ name: "session", keys: ["this is a key", "this is anothe
 app.use(bodyParser.urlencoded());
 app.set("view engine", "ejs");
 app.use(methodOverride('_method')); 
+// method-override is needed to be able to do an app.put call
+// in the form action, append '?_method=PUT' to the end of the URL.
+// This code below will look for that ?_method=PUT attribute and execute app.put instead of app.post
+
 
 // DATABASE
 const user_data = {
@@ -34,13 +38,15 @@ function generateRandomString(length, chars) {
   for (let i = 0; i < length; i++) {
     let randomIndex = Math.floor(Math.random() * chars.length);
     shortName += chars[randomIndex];
-  }
+  };
 
   return shortName;
- }
+
+ };
 
 // LISTENERS
 app.get("/", (req, res) => {
+  console.log("IN GET /");
   const user_id = req.session.user_id; // NOTE: this code gets the user_id and email from the cookie using 'cookie-session'
   const email = req.session.email;
   const templateVars = { user_id: user_id, email: email };
@@ -49,6 +55,7 @@ app.get("/", (req, res) => {
 });
 
 app.get("/urls", (req, res) => {
+  console.log("IN GET /urls");
   const user_id = req.session.user_id;
   const email = req.session.email;
   const templateVars = { urls: urlDatabase[user_id], user_id: user_id, email: email };
@@ -56,9 +63,11 @@ app.get("/urls", (req, res) => {
   res.render("urls_index", templateVars);
 });
 
+// /urls/new must be placed above /urls/:id, otherwise the routing 
+// to /urls/:id/ will think that the 'new' part is the name of an 'id'
 
 app.get("/urls/new", (req,res) => {
-  // /urls/new must be placed above /urls/:id
+  console.log("IN GET /urls/new");
   const user_id = req.session.user_id;
   const email = req.session.email;
   const templateVars = { user_id: user_id, email: email };
@@ -68,9 +77,12 @@ app.get("/urls/new", (req,res) => {
 
 // -- ADD
 app.post("/urls", (req, res) => {
+  console.log("IN POST /urls");
   const user_id = req.session.user_id;
   const shortURL = generateRandomString(randomLength, acceptableChars);
   const longURL = req.body.longURL;
+  
+  // DO SOME ERROR CHECKING HERE - if 'string does not start with http://' then add it
   urlDatabase[user_id][shortURL] = longURL;
   
   res.redirect("/urls");
@@ -78,6 +90,7 @@ app.post("/urls", (req, res) => {
 
 // -- DELETE
 app.post("/urls/:id/delete", (req, res) => {
+  console.log("IN POST /urls/:id/delete");
   const user_id = req.session.user_id;
   const shortURL = req.params.id;
 
@@ -86,23 +99,31 @@ app.post("/urls/:id/delete", (req, res) => {
 });
 
 app.get("/urls/:shortURL", (req, res) => {
+  console.log("IN GET /urls/:id");
   const user_id = req.session.user_id;
   const email = req.session.email;
-  const shortURL = req.params.shortURL;
+  const shortURL = req.params.shortURL; // grabs the shortURL from the :shortURL parameter in the URL pattern in the GET request
   const templateVars = { user_id: user_id, email: email, shortURL: shortURL, longURL: urlDatabase[user_id][shortURL] };
 
   if (urlDatabase[user_id][shortURL] === undefined) {
     res.send("Page not found - 404", 404);
   } else {
     res.render("urls_show", templateVars);
- } 
+ }; 
 });
 
 // -- EDIT
+// the following 'app.put' call is possible because of the method-override package
+// To use the app.put call, be sure to append ?_method=PUT to the end of the action URL
+// in the form field in the appropriate view
 app.put("/urls/:shortURL", (req, res) => {
+  console.log("IN PUT /urls/:shortURL");
+  // use 'bodyparser' package to parse the BODY of the POST call
+  // to get the data sent in the post request. e.g., let newURL = req.body.newUrl;
+  
   const user_id = req.session.user_id;
-  const newURL = req.body.newUrl; 
-  const shortURL = req.params.shortURL;
+  const newURL = req.body.newUrl;       // grabs the newURL from the request body (using body-parser)
+  const shortURL = req.params.shortURL; // grabs the shortURL from the :shortURL parameter in the URL pattern in the GET request
 
   urlDatabase[user_id][shortURL] = newURL;
 
@@ -111,14 +132,19 @@ app.put("/urls/:shortURL", (req, res) => {
 
 // Redirect to long URL
 app.get("/u/:shortURL", (req, res) => {
-  const shortURL = req.params.shortURL;
+  console.log("IN GET /u/:shortURL");
+  const shortURL = req.params.shortURL; // grabs the shortURL from the :ID parameter in the URL pattern in the GET request
 
   for (let item in urlDatabase) {
-    if (urlDatabase[item][shortURL]) { 
+    if (urlDatabase[item][shortURL]) { // if short url exists, redirect to longURL
       let longURL = urlDatabase[item][shortURL];
 
+      // add error checking here. If string does not use http:// at the
+      // begining, then add it. Otherwise it will think longURL is a relative
+      // path and it will not work
       res.redirect(longURL);
-      return;
+
+      return
     }
   }
   
@@ -126,20 +152,25 @@ app.get("/u/:shortURL", (req, res) => {
 });
 
 app.get("/login", (req, res) => {
-  const templateVars = { message: "" };
+  console.log("IN GET /login");
+
+  templateVars = { message: "" };
 
   res.render("urls_login", templateVars);
 });
 
 app.post("/login", (req, res) => {
+  console.log("IN POST /login");
+
   const email = req.body.email;
   const password = req.body.password;
 
   for (let item in user_data) { 
 
-    if (user_data[item].email === email) { 
+    if (user_data[item].email === email) { // check if email exists in the database
+      console.log("Email exists in database");
       
-      if (bcrypt.compareSync(password, user_data[item].password)) {
+      if (bcrypt.compareSync(password, user_data[item].password)) { // check if password matches the database
    
         // SET cookies
         req.session.user_id = user_data[item].id;
@@ -151,7 +182,7 @@ app.post("/login", (req, res) => {
 
       } else {
 
-        const templateVars = { message: "The password is incorrect" };
+        templateVars = { message: "The password is incorrect" };
         res.status(403).render("urls_login", templateVars);
         
         return;
@@ -159,13 +190,15 @@ app.post("/login", (req, res) => {
     }
   }
 
-  const templateVars = { message: "That user account does not exist" };
+  templateVars = { message: "That user account does not exist" };
   res.status(403).render("urls_login", templateVars);
   
   return;
 }); 
 
 app.post("/logout", (req, res) => {
+  console.log("IN POST /logout");
+
   // CLEAR cookies
   req.session.user_id = "";
   req.session.email = "";
@@ -174,21 +207,30 @@ app.post("/logout", (req, res) => {
 });
 
 app.get("/register", (req, res) => {
+  console.log("IN GET /register");
+
   let templateVars = { message: undefined };
-  
   res.render("urls_register", templateVars);
 });
 
 app.post("/register", (req, res) => {
+  console.log("IN POST /register");
   const email = req.body.email;
   const password = req.body.password;
-  const hashed_password = bcrypt.hashSync(password, salt);
+
+  const hashed_password = bcrypt.hashSync(password, salt); // create hashed password
+
   const templateVars = { message: undefined, email: email };
 
+  const keys = Object.keys(user_data);
+
+  console.log("email: " + email);
+  console.log("hashed_password: " + hashed_password);
+
   for (let item in user_data) { 
-    if (user_data[item].email === email) {
+    if (user_data[item].email === email) { // check if email already exists
+
       templateVars["message"] = "An account already exists for that email address. Please use a different one.";
-      
       res.status(400).render("urls_register", templateVars);
       return; 
     }
@@ -196,22 +238,24 @@ app.post("/register", (req, res) => {
 
   if (email === "" || password === "") {
     templateVars["message"] = "Email and password cannot be blank";
-    
     res.status(400).render("urls_register", templateVars);
     return;
   }
 
-  const user_id = generateRandomString(10, acceptableChars);
+  const user_id = generateRandomString(10, acceptableChars); // Randomly generate a user id
   
   // SET cookies for new registrant - signs them in after registration
   req.session.user_id = user_id;
   req.session.email = email;
-  user_data[user_id] = { id: user_id, email: email, password: hashed_password };
-  urlDatabase[user_id] = {};
-  
+
+  user_data[user_id] = { id: user_id, email: email, password: hashed_password }; // add them to the user database
+  urlDatabase[user_id] = {}; // give them an empty object to start with
   res.redirect("/");
 });
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
 });
+
+
+
