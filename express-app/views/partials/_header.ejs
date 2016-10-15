@@ -1,6 +1,6 @@
 <p><a href="/">Home</a></p>
 <% if(!user_id) { %>
-  <h2><a href="/register">Register for an account here</a>
+  <h3><a href="/register">Register for an account here</a></h3>
 <% } else { %>
   <h2>Logged in as: <%= email %></h2>
   <form method=POST action="/logout">
