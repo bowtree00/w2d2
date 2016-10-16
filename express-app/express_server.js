@@ -14,6 +14,14 @@ app.use(bodyParser.urlencoded());
 app.set("view engine", "ejs");
 app.use(methodOverride('_method')); 
 
+// - Tracking cookie
+// app.use((req, res, next) => {
+//   console.log("HERE");
+//   req.session.views = (req.session.views || 0) + 1;
+
+//   res.end(req.session.views + ' views')
+// })
+
 // DATABASE
 const user_data = {
   "userRandomID": { id: "userRandomID", email: "testemail@gmail.com", password: "$2a$04$kcqFKEbdS0LgBO/sTgCH3.H3zvERfkWOULYAmrV5rRe0hOIEwWQU6" }
@@ -43,7 +51,12 @@ function generateRandomString(length, chars) {
 app.get("/", (req, res) => {
   const user_id = req.session.user_id; // NOTE: this code gets the user_id and email from the cookie using 'cookie-session'
   const email = req.session.email;
-  const templateVars = { user_id: user_id, email: email };
+
+  req.session.views = (req.session.views || 0) + 1;
+
+  const views = req.session.views;
+
+  const templateVars = { user_id: user_id, email: email, views: views };
 
   res.render("urls_home", templateVars);
 });
@@ -89,6 +102,17 @@ app.get("/urls/:shortURL", (req, res) => {
   const user_id = req.session.user_id;
   const email = req.session.email;
   const shortURL = req.params.shortURL;
+
+// TEST - set cookie for each time this shortURL page is visited
+  // req.cookie('cookie name', value)
+  // req.session({ name: shortURL }) = (req.session({ name: shortURL }) || 0) + 1;
+  // const views = req.session({ name: shortURL });
+
+  // req.cookies(shortURL) = (req.cookies(shortURL) || 0) +1;
+  // const views = req.cookies(shortURL);
+
+  // const templateVars = { user_id: user_id, email: email, shortURL: shortURL, longURL: urlDatabase[user_id][shortURL], views: views };
+  
   const templateVars = { user_id: user_id, email: email, shortURL: shortURL, longURL: urlDatabase[user_id][shortURL] };
 
   if (urlDatabase[user_id][shortURL] === undefined) {

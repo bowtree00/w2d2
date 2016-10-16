@@ -14,5 +14,8 @@
   <% url = "/urls/" + shortURL + "?_method=PUT"; %>
   <form method="POST" action="<%= url %>">
   <input name="newUrl" value="<%= longURL %>" /><button> Update </button><br></form>
+
+  <h3>Number of views: <%= views %></h3>
+
 </body>
 </html>
