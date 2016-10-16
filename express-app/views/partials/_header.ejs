@@ -1,10 +1,36 @@
-<p><h3><a href="/">Home</a></h3></p>
-<% if(!user_id) { %>
-  <h3><a href="/register">Register for an account here</a></h3>
-<% } else { %>
-  <h3>Logged in as: <%= email %></h3>
-  <form method=POST action="/logout">
-  <input type="submit" name="logout" value="logout" />
-  </form>
-<% } %>
+<nav class="navbar navbar-default" role="navigation">
+    <div class="container-fluid">
 
+        <div class="navbar-header">
+            <a class="navbar-brand" href="#">
+                <span class="glyphicon glyphicon glyphicon-tree-deciduous"></span>
+                TinyApp!
+            </a>
+        </div>
+
+        <ul class="nav navbar-nav">
+            <li><a href="/"><span class="glyphicon glyphicon-home">Home</a></li>
+        </ul>
+
+  <ul class="nav navbar-nav navbar-right">
+
+<% if(!user_id) { %>
+
+  <li><a href="/login"><span class="glyphicon glyphicon-log-in"></span> Log in</a></li>
+  <li><a href="/register"><span class="glyphicon glyphicon-user"></span> Register for an account</a></li>
+
+<% } else { %>
+
+  
+  <li><a href="#"><span class="glyphicon glyphicon-user"></span>Logged in as: <%= email %></a></li>
+  <li><form method=POST action="/logout">
+  <input type="submit" name="logout" value="logout" />
+  </form></li>
+
+<% } %>
+    
+    </ul>
+
+
+    </div>
+</nav>

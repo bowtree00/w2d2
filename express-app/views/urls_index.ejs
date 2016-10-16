@@ -5,38 +5,57 @@
 
 <% include partials/_css_scripts.ejs %>
 
+<body style="padding:50px;">
+
 <body> 
   <header> 
     <% include partials/_header.ejs %>
   </header>
 
+  <div class="jumbotron">
+
   <% if(!user_id) { %>
 
   <h1>You must be registered and logged in view this resource</h1>
-  <p><a href = "/login">Log In</a><p>
+  <p><a href = "/login">Log In</a></p>
 
   <% } else { %>
     <h2> Shortened Links: </h2>
     <ul>
+
     <% var keys = Object.keys(urls); %>
-    <% keys.forEach(function(key){ %>
+ 
+    <% if (keys.length == 0) { %>
+       <h4>You have no shortened links</h4>
+    <% } %>
+
+    <% keys.forEach(function(key) { %>
       <% currUrl = urls[key]; %> 
-      <li><b><%= key %></b> -->  <a href=<%= currUrl %>><%= currUrl %></a>  
-        <a href="/urls/<%= key %>/">Edit</a>
+      <li><b><%= key %></b> -->  <a href=<%= currUrl %>><%= currUrl %> </a>  
+
+      <a href="/urls/<%= key %>/"><span class="glyphicon glyphicon-pencil"></span> Edit</a>
+
       <% url = "/urls/" + key + "?_method=DELETE" %> <!--This uses method-override to make a DELETE request. In our server, the listener app.delete (with the URL pattern /urls/:shortURL) will be called-->
-      <form method="POST" action=<%= url %> >
-        <button> Delete <%= key %> </button>
+
+      <form method="POST" action=<%= url %> ><input type="submit" name="delete" value="Delete" />
+  
       </form></li>
+
+
+  </form></li>
+
     <% }); %>
+
     </ul>
+
     <p></p>
-    <h2>Create a new shortened link</h2>
+    <h3>Create a new shortened link</h3>
     <form method="GET" action="/urls/new">
-      <button> Go </button>
+      <input type="submit" name="new" value="New Link" />
     </form>
   
   <% } %>
-
+</div>
 </body>
 </html>
 

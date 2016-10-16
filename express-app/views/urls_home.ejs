@@ -5,10 +5,14 @@
 
 <% include partials/_css_scripts.ejs %>
 
-<body> 
+<body style="padding:50px;">
+
+<body class="container"> 
   <header> 
     <% include partials/_header.ejs %>
   </header>
+
+  <div class="jumbotron">
   <h1>Welcome to TinyApp!</h1>
   <p></p>
   <% if(!user_id) { %>
@@ -17,6 +21,6 @@
   <h3><a href="/urls/new">Create a shortened URL</a></h3>
   <h3><a href="/urls">See your shortened URLs</a></h3>
   <% } %>
-    
+  </div>
 </body>
 </html>
