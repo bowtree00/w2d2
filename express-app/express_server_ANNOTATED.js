@@ -63,8 +63,8 @@ app.get("/urls", (req, res) => {
   res.render("urls_index", templateVars);
 });
 
-// /urls/new must be placed above /urls/:id, otherwise the routing 
-// to /urls/:id/ will think that the 'new' part is the name of an 'id'
+// /urls/new must be placed above /urls/:shortURL, otherwise the routing 
+// to /urls/:shortURL/ will think that the 'new' part is the name of an 'id'
 
 app.get("/urls/new", (req,res) => {
   console.log("IN GET /urls/new");
@@ -89,10 +89,10 @@ app.post("/urls", (req, res) => {
 });
 
 // -- DELETE
-app.post("/urls/:id/delete", (req, res) => {
-  console.log("IN POST /urls/:id/delete");
+app.delete("/urls/:shortURL", (req, res) => {
+  console.log("IN POST /urls/:shortURL");
   const user_id = req.session.user_id;
-  const shortURL = req.params.id;
+  const shortURL = req.params.shortURL;
 
   delete urlDatabase[user_id][shortURL];
   res.redirect("/urls/");
@@ -115,7 +115,8 @@ app.get("/urls/:shortURL", (req, res) => {
 // -- EDIT
 // the following 'app.put' call is possible because of the method-override package
 // To use the app.put call, be sure to append ?_method=PUT to the end of the action URL
-// in the form field in the appropriate view
+// in the form field in the appropriate view. Method-override will then see that query
+// string and will call app.put for the specified URL pattern (rather than app.post)
 app.put("/urls/:shortURL", (req, res) => {
   console.log("IN PUT /urls/:shortURL");
   // use 'bodyparser' package to parse the BODY of the POST call

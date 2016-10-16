@@ -58,7 +58,7 @@ app.get("/urls", (req, res) => {
 
 
 app.get("/urls/new", (req,res) => {
-  // /urls/new must be placed above /urls/:id
+  // /urls/new must be placed above /urls/:shortURL
   const user_id = req.session.user_id;
   const email = req.session.email;
   const templateVars = { user_id: user_id, email: email };
@@ -77,9 +77,9 @@ app.post("/urls", (req, res) => {
 });
 
 // -- DELETE
-app.post("/urls/:id/delete", (req, res) => {
+app.delete("/urls/:shortURL", (req, res) => {
   const user_id = req.session.user_id;
-  const shortURL = req.params.id;
+  const shortURL = req.params.shortURL;
 
   delete urlDatabase[user_id][shortURL];
   res.redirect("/urls/");

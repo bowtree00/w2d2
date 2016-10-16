@@ -23,7 +23,7 @@
       <% currUrl = urls[key]; %> 
       <li><b><%= key %></b> -->  <a href=<%= currUrl %>><%= currUrl %></a>  
         <a href="/urls/<%= key %>/">Edit</a>
-      <% url = "/urls/" + key + "/delete" %>
+      <% url = "/urls/" + key + "?_method=DELETE" %> <!--This uses method-override to make a DELETE request. In our server, the listener app.delete (with the URL pattern /urls/:shortURL) will be called-->
       <form method="POST" action=<%= url %> >
         <button> Delete <%= key %> </button>
       </form></li>
