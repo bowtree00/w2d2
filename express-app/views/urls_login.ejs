@@ -1,23 +1,29 @@
 <!-- views/urls_login.ejs -->
 
+<!DOCTYPE html>
+<html lang="en">
+
 <% include partials/_css_scripts.ejs %>
-<body style="padding:50px;">
 
-<% if(message) { %>
-  <h1><%= message %></h1>
-<% } %>
+  <body style="padding:50px;">
 
-<form method="POST" action="/login">
-  <p>
-    <label>Email</label>
-    <input type="text" name="email" />
-  </p>
-  <p>
-    <label>Password</label>
-    <input type="password" name="password" />
-  </p>
-  <p>
-    <input type="submit" name="Login" value="Login"/>
-  </p>
+    <% if(message) { %>
+      <h1><%= message %></h1>
+    <% } %>
 
-</form>
+    <form method="POST" action="/login">
+      <p>
+        <label>Email</label>
+        <input type="text" name="email" />
+      </p>
+      <p>
+        <label>Password</label>
+        <input type="password" name="password" />
+      </p>
+      <p>
+        <input type="submit" name="Login" value="Login"/>
+      </p>
+
+    </form>
+  </body>
+</html>

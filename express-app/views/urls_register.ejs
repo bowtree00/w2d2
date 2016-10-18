@@ -2,26 +2,30 @@
 
 <!-- header+section>(p#intro+(ul>li*5)+footer>(.row>(.col-xs-4+.col-xs-8))) -->
 
-<% include partials/_css_scripts.ejs %>
+<!DOCTYPE html>
+<html lang="en">
 
-<body style="padding:50px;">
+  <% include partials/_css_scripts.ejs %>
 
+  <body style="padding:50px;">
 
-<% if(message) { %>
-  <h1><%= message %></h1>
-<% } %>
+    <% if(message) { %>
+      <h1><%= message %></h1>
+    <% } %>
 
-<form method="POST" action="/register">
-  <p>
-    <label>Email</label>
-    <input type="email" name="email" />
-  </p>
-  <p>
-    <label>Password</label>
-    <input type="password" name="password" />
-  </p>
-  <p>
-    <input type="submit" name="Signup" value="Create Account"/>
-  </p>
+    <form method="POST" action="/register">
+      <p>
+        <label>Email</label>
+        <input type="email" name="email" />
+      </p>
+      <p>
+        <label>Password</label>
+        <input type="password" name="password" />
+      </p>
+      <p>
+        <input type="submit" name="Signup" value="Create Account"/>
+      </p>
 
-</form>
+    </form>
+  </body>
+</html>

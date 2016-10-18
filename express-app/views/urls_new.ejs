@@ -1,23 +1,23 @@
 <!DOCTYPE html>
 <html lang="en">
 
-<% include partials/_css_scripts.ejs %>
-<body>
-<body style="padding:50px;">
-    <% include partials/_header %>
+  <% include partials/_css_scripts.ejs %>
 
-  <% if(!user_id) { %>
-  <h1>You must be registered and logged in to create links</h1>
-  <p><a href = "/login">Log In</a><p>
+  <body style="padding:50px;">
+      <% include partials/_header %>
 
-  <% } else { %>
+    <% if(!user_id) { %>
+    <h1>You must be registered and logged in to create links</h1>
+    <p><a href = "/login">Log In</a><p>
 
-    <form action="/urls" method="POST" style="margin:150px;">
-      <label for="longURL">Enter a URL:</label>
-      <input id="longURL" type="text" name="longURL" placeholder="http://" style="width: 300px">
-      <input type="submit" value="Submit">
-    </form>
+    <% } else { %>
 
-  <% } %>
-  </body > 
+      <form action="/urls" method="POST" style="margin:150px;">
+        <label for="longURL">Enter a URL:</label>
+        <input id="longURL" type="text" name="longURL" placeholder="http://" style="width: 300px">
+        <input type="submit" value="Submit">
+      </form>
+
+    <% } %>
+    </body > 
 </html>
