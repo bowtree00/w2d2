@@ -2,25 +2,25 @@
 
 <!DOCTYPE html>
 <html lang="en">
+  <head>
+    <% include partials/_css_scripts.ejs %>
+  </head>
 
-<% include partials/_css_scripts.ejs %>
+  <body class="container" style="padding:50px;"> 
 
-<body style="padding:50px;">
+      <% include partials/_header.ejs %>
 
-<body class="container"> 
-  <header> 
-    <% include partials/_header.ejs %>
-  </header>
+    <div class="jumbotron">
+    <h1>Welcome to TinyApp!</h1>
+    <p></p>
+    
+    <% if(!user_id) { %>
+        <h3><a href="/login">Log in</a></h3>
+    <% } else { %>
+        <h3><a href="/urls/new">Create a shortened URL</a></h3>
+        <h3><a href="/urls">See your shortened URLs</a></h3>
+    <% } %>
 
-  <div class="jumbotron">
-  <h1>Welcome to TinyApp!</h1>
-  <p></p>
-  <% if(!user_id) { %>
-    <h3><a href="/login">Log in</a></h3>
-  <% } else { %>
-  <h3><a href="/urls/new">Create a shortened URL</a></h3>
-  <h3><a href="/urls">See your shortened URLs</a></h3>
-  <% } %>
-  </div>
-</body>
+    </div>
+  </body>
 </html>

@@ -24,6 +24,7 @@ const urlDatabase = {
   "9sm5xK": "http://www.google.com" }
 };
 
+
 // FUNCTIONS
 const randomLength = 6;
 const acceptableChars = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
@@ -85,6 +86,7 @@ app.delete("/urls/:shortURL", (req, res) => {
   res.redirect("/urls/");
 });
 
+
 app.get("/urls/:shortURL", (req, res) => {
   const user_id = req.session.user_id;
   const email = req.session.email;
@@ -113,9 +115,9 @@ app.put("/urls/:shortURL", (req, res) => {
 app.get("/u/:shortURL", (req, res) => {
   const shortURL = req.params.shortURL;
 
-  for (let item in urlDatabase) {
-    if (urlDatabase[item][shortURL]) { 
-      let longURL = urlDatabase[item][shortURL];
+  for (let userId in urlDatabase) {
+    if (urlDatabase[userId][shortURL]) { 
+      let longURL = urlDatabase[userId][shortURL];
 
       res.redirect(longURL);
       return;
@@ -136,6 +138,16 @@ app.post("/login", (req, res) => {
   const password = req.body.password;
 
   for (let item in user_data) { 
+
+// FEEDBACK FROM CODE REVIEW:
+// // express_server.js:140 
+// This if statement can be joined together, a bit cleaner this way: 
+// if ( email is correct && password is correct ) { 
+// do something 
+// } else { 
+// error message 
+// } 
+// If the email is incorrect, the second condition for password will not even be checked.
 
     if (user_data[item].email === email) { 
       
@@ -193,6 +205,10 @@ app.post("/register", (req, res) => {
       return; 
     }
   }
+
+// FEEDBACK FROM CODE REVIEW:
+// // express_server.js:197 
+// Consider moving the if statement for checking blanks to before looking for users. Makes your application cheaper to run so that it doesn't do that loop every time.
 
   if (email === "" || password === "") {
     templateVars["message"] = "Email and password cannot be blank";
